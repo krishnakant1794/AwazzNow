@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const BACKEND_API_BASE_URL = 'http://localhost:5000/api';
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 function ResetPassword({ onPasswordResetSuccess }) {
   const { token } = useParams();   const navigate = useNavigate(); 
   const [password, setPassword] = useState('');

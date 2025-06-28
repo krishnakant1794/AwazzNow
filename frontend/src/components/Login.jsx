@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react'; 
-const BACKEND_API_BASE_URL = 'http://localhost:5000/api';
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 const Login = ({ onLoginSuccess, onSwitchToSignup, onSwitchToForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

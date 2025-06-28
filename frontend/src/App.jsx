@@ -7,7 +7,7 @@ import Signup from './components/Signup.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
-const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() {
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -95,13 +95,13 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
       }
       
       if (response.data.articles.length === 0) {
-        setArticles([]); // Explicitly set to empty array if no results
+        setArticles([]); 
         setError(`No articles found for "${queryToUse}" in category "${selectedCategory}". Try a different search or category.`);
         console.log(`WARN: fetchArticles - No articles found for "${queryToUse}" in "${selectedCategory}".`);
       } else {
         setArticles(response.data.articles);
         sessionStorage.setItem(cacheKey, JSON.stringify(response.data.articles)); // Cache successful response
-        setError(null); // Clear any previous errors if successful
+        setError(null); 
         console.log(`TRACE: fetchArticles - Successfully fetched ${response.data.articles.length} articles.`);
       }
     } catch (err) {
@@ -119,7 +119,7 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
         errorMessage = 'Network error or CORS issue. Check console for details.';
       }
       setError(errorMessage);
-      setArticles([]); // Ensure articles array is cleared on error
+      setArticles([]);
     } finally {
       setLoading(false);
       console.log('TRACE: fetchArticles - Loading state set to false.');
@@ -128,11 +128,11 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
     console.log('TRACE: fetchSavedArticles - Attempting to fetch saved articles.');
     if (!token || !isAuthReady) {
         console.log('TRACE: fetchSavedArticles - Skipping, token missing or auth not ready.');
-        setSavedArticles([]); // Clear saved articles if not logged in
+        setSavedArticles([]);
         return;
     }
     setLoading(true);
-    setError(null); // Clear previous errors
+    setError(null); 
     try {
       console.log('TRACE: fetchSavedArticles - Making API call to backend /my-summaries.');
       const response = await axios.get(`${BACKEND_API_BASE_URL}/my-summaries`, {
@@ -151,7 +151,7 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
       setLoading(false);
       console.log('TRACE: fetchSavedArticles - Loading state set to false.');
     }
-  }, [token, isAuthReady, handleLogout]); // Dependencies: token, isAuthReady, and stable logout function
+  }, [token, isAuthReady, handleLogout]); 
   const handleDeleteArticleClick = useCallback((articleId) => {
     console.log(`TRACE: handleDeleteArticleClick - Preparing to delete article ID: ${articleId}`);
     setArticleToDeleteId(articleId);
@@ -160,7 +160,7 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
   }, []);
   const confirmDeletion = useCallback(async () => {
     console.log(`TRACE: confirmDeletion - User confirmed deletion for article ID: ${articleToDeleteId}`);
-    setShowConfirmDeleteModal(false); // Close the modal immediately
+    setShowConfirmDeleteModal(false); 
     if (!token) {
       setError('You must be logged in to delete articles.');
       console.error('ERROR: confirmDeletion - No token found for deletion.');
@@ -173,14 +173,14 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
         headers: { 'Authorization': `Bearer ${token}` }
       });
       console.log('TRACE: confirmDeletion - Article deleted successfully on backend!');
-      fetchSavedArticles(); // Re-fetch the list to update UI
+      fetchSavedArticles(); 
     } catch (err) {
       console.error('ERROR: confirmDeletion Failed:', err.response ? err.response.data : err.message);
       setError(err.response?.data?.message || 'Failed to delete article.');
       if (err.response?.status === 401 || err.response?.status === 403) handleLogout();
     } finally {
       setLoading(false);
-      setArticleToDeleteId(null); // Clear the ID stored for deletion
+      setArticleToDeleteId(null); 
       console.log('TRACE: confirmDeletion - Deletion process completed.');
     }
   }, [articleToDeleteId, token, fetchSavedArticles, handleLogout]);
@@ -190,7 +190,7 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
     setArticleToDeleteId(null);
   }, []);
   const handleSearchSubmit = useCallback((e) => {
-    e.preventDefault(); // Prevent default form submission behavior (page reload)
+    e.preventDefault(); 
     console.log('TRACE: handleSearchSubmit - Form submitted. Query:', searchQuery, 'Category:', category);
     initialHomeFetchDone.current = false;
     initialMySummariesFetchDone.current = false;
@@ -207,15 +207,15 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
         navigate('/login');
         console.log('TRACE: handleSearchSubmit - User not logged in, redirecting to /login.');
     }
-    setIsMobileMenuOpen(false); // Close mobile menu
+    setIsMobileMenuOpen(false); 
   }, [searchQuery, category, token, location.pathname, navigate, fetchArticles]);
 
   const handleCategoryClick = useCallback((newCategory) => {
     console.log('TRACE: handleCategoryClick - Category button clicked. New Category:', newCategory);
-    setCategory(newCategory); // Update the category state
-    setSelectedArticle(null); // Clear any currently selected article
-    setSummary(''); setKeyTakeaways(''); // Clear old summaries/takeaways
-    setIsMobileMenuOpen(false);     // Reset fetch flags to force a re-fetch for the new category
+    setCategory(newCategory); 
+    setSelectedArticle(null); 
+    setSummary(''); setKeyTakeaways(''); 
+    setIsMobileMenuOpen(false);
     initialHomeFetchDone.current = false;
     initialMySummariesFetchDone.current = false;
     if (location.pathname !== '/') {
@@ -229,17 +229,17 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
   const handleMySummariesClick = useCallback(() => {
     console.log('TRACE: handleMySummariesClick - "My Summaries" button clicked. Current Token:', token ? 'Exists' : 'Null');
     navigate('/my-summaries');
-    setIsMobileMenuOpen(false); // Close mobile menu
-    setSelectedArticle(null); setSummary(''); setKeyTakeaways(''); // Clear states from main news view
-    initialHomeFetchDone.current = false; // Reset home fetch flag if user returns
+    setIsMobileMenuOpen(false); 
+    setSelectedArticle(null); setSummary(''); setKeyTakeaways(''); 
+    initialHomeFetchDone.current = false;
   }, [navigate, token]);
 
   const handleHomeClick = useCallback(() => {
     console.log('TRACE: handleHomeClick - "Home" button clicked. Current Token:', token ? 'Exists' : 'Null');
     navigate('/');
-    setIsMobileMenuOpen(false); // Close mobile menu
-    setSelectedArticle(null); setSummary(''); setKeyTakeaways(''); // Clear states from My Summaries view
-    initialMySummariesFetchDone.current = false; // Reset My Summaries fetch flag if user returns
+    setIsMobileMenuOpen(false); 
+    setSelectedArticle(null); setSummary(''); setKeyTakeaways(''); 
+    initialMySummariesFetchDone.current = false; 
   }, [navigate, token]);
   const summarizeAndSaveArticle = async (article) => {
     console.log('TRACE: summarizeAndSaveArticle - Initiating summarization for article:', article.title);
@@ -310,33 +310,33 @@ const BACKEND_API_BASE_URL = 'http://localhost:5000/api'; function AppContent() 
       } else {
         console.log('TRACE: useEffect 2 (Main Logic) - Already on an auth path. Staying.');
       }
-      return; // Crucial: Stop this effect here if user is not authenticated
+      return; 
     }
     console.log('TRACE: useEffect 2 (Main Logic) - User IS authenticated.');
     if (currentPathIsAuth && !location.pathname.startsWith('/reset-password/')) {
         console.log('TRACE: useEffect 2 (Main Logic) - Authenticated on auth path. Redirecting to /.');
-        navigate('/', { replace: true }); // Use replace to prevent adding to browser history
-        return; // After navigation, this effect will re-run for the new '/' path
+        navigate('/', { replace: true }); 
+        return; 
     }
     if (currentPathIsHome) {
       if (!initialHomeFetchDone.current) {
         console.log('TRACE: useEffect 2 (Main Logic) - On Home path. Initiating initial fetchArticles.');
         const queryToUse = searchQuery.trim() === '' ? 'latest news' : searchQuery;
         fetchArticles(queryToUse, category);
-        initialHomeFetchDone.current = true; // Mark as fetched for this session
+        initialHomeFetchDone.current = true; 
       } else {
         console.log('TRACE: useEffect 2 (Main Logic) - On Home path. Articles already fetched for this session.');
       }
-      initialMySummariesFetchDone.current = false; // Reset the flag for My Summaries when leaving it
+      initialMySummariesFetchDone.current = false; 
     } else if (currentPathIsMySummaries) {
       if (!initialMySummariesFetchDone.current) {
         console.log('TRACE: useEffect 2 (Main Logic) - On My Summaries path. Initiating initial fetchSavedArticles.');
         fetchSavedArticles();
-        initialMySummariesFetchDone.current = true; // Mark as fetched for this session
+        initialMySummariesFetchDone.current = true; 
       } else {
         console.log('TRACE: useEffect 2 (Main Logic) - On My Summaries path. Saved articles already fetched for this session.');
       }
-      initialHomeFetchDone.current = false; // Reset the flag for Home when leaving it
+      initialHomeFetchDone.current = false; 
     } else {
       console.log('TRACE: useEffect 2 (Main Logic) - Authenticated on unhandled path. Resetting fetch flags.');
       initialHomeFetchDone.current = false;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const BACKEND_API_BASE_URL = 'http://localhost:5000/api';
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 function ForgotPassword({ onSwitchToLogin }) {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState(null);   const [error, setError] = useState(null);       const [loading, setLoading] = useState(false); 
