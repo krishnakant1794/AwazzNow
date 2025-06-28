@@ -1,0 +1,184 @@
+/* frontend/src/index.css */
+/* Import Tailwind CSS base, components, and utilities */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Base styles for the entire website */
+body {
+  margin: 0; /* Remove default body margin */
+  font-family: 'Inter', sans-serif; /* Using Inter font as requested */
+  -webkit-font-smoothing: antialiased; /* Smoother font rendering for WebKit browsers */
+  -moz-osx-font-smoothing: grayscale; /* Smoother font rendering for Mozilla browsers */
+  overflow-x: hidden; /* Prevent horizontal scrollbar due to star animations */
+}
+
+/* Starry Black Background for the entire application, applied to the #root element (where your React app mounts) */
+#root {
+  min-height: 100vh; /* Ensure it takes at least the full viewport height */
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%); /* Deep space gradient background */
+  position: relative; /* Needed for positioning pseudo-elements */
+  overflow: hidden; /* Important to contain pseudo-elements and their animations */
+  color: #F0F0F0; /* Default light text color for readability on dark background */
+}
+
+/* Pseudo-elements for creating the twinkling star layers */
+/* These will be positioned absolutely over the #root element */
+#root::before,
+#root::after {
+  content: ''; /* Required for pseudo-elements */
+  position: absolute; /* Position relative to the parent #root */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: repeat; /* Repeat the star patterns */
+  /* Ensure these pseudo-elements do not capture pointer events */
+  pointer-events: none; /* NEW: This is crucial to allow clicks to pass through */
+}
+
+/* Layer 1: Smallest, fastest stars */
+#root::before {
+  background-image: radial-gradient(2px 2px at 20px 30px, #eee, transparent), /* Small white dots */
+                    radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+                    radial-gradient(2px 2px at 10px 100px, #ddd, transparent),
+                    radial-gradient(2px 2px at 90px 40px, #eee, transparent),
+                    radial-gradient(2px 2px at 100px 90px, #fff, transparent);
+  background-size: 200px 200px; /* Controls the density of stars in this layer */
+  animation: move-twink-back 200s linear infinite; /* Apply animation for movement */
+  opacity: 0.8; /* Slightly transparent */
+  z-index: 0; /* Ensures stars are behind content but above the gradient background */
+}
+
+/* Layer 2: Medium stars, slightly slower, for a parallax effect */
+#root::after {
+  background-image: radial-gradient(3px 3px at 50px 150px, #ccc, transparent),
+                    radial-gradient(3px 3px at 150px 20px, #fff, transparent),
+                    radial-gradient(3px 3px at 70px 180px, #bbb, transparent),
+                    radial-gradient(3px 3px at 180px 100px, #eee, transparent);
+  background-size: 300px 300px; /* Controls density for this layer */
+  animation: move-twink-back 400s linear infinite; /* Slower animation for parallax */
+  opacity: 0.6; /* More transparent */
+  z-index: 0; /* Same z-index to layer them */
+}
+
+/* Keyframe animation for stars to move background (creates parallax effect) */
+@keyframes move-twink-back {
+  from {
+    background-position: 0 0; /* Starting position */
+  }
+  to {
+    background-position: -10000px 5000px; /* Moves diagonally over time, creating a "moving through space" effect */
+  }
+}
+
+/* Custom CSS for primary button hover effects (beyond basic Tailwind) */
+.btn-orange-glow {
+  position: relative; /* Needed for positioning pseudo-element */
+  overflow: hidden; /* Ensures glow doesn't spill out */
+  z-index: 1; /* Ensures text/icon is above the glow pseudo-element */
+}
+
+.btn-orange-glow::before {
+  content: ''; /* Required for pseudo-element */
+  position: absolute;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  width: 0; /* Start with no width */
+  height: 0; /* Start with no height */
+  background: rgba(255, 165, 0, 0.4); /* Lighter orange glow color with transparency */
+  border-radius: 50%; /* Makes the glow circular */
+  transform: translate(-50%, -50%); /* Adjust for accurate centering */
+  transition: width 0.4s ease-out, height 0.4s ease-out, opacity 0.4s ease-out; /* Smooth transition for size and opacity */
+  opacity: 0; /* Start invisible */
+  z-index: -1; /* Ensures glow is behind the button's content */
+}
+
+.btn-orange-glow:hover::before {
+  width: 200%; /* Expand width on hover */
+  height: 200%; /* Expand height on hover */
+  opacity: 1; /* Become fully opaque on hover */
+}
+
+/* Page Transition Animation (simple fade-in for content) */
+/* These classes will be applied by React component logic or a transition library */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px); /* Start slightly below */
+}
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0); /* Move to original position */
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Smooth transition */
+}
+.page-transition-exit {
+  opacity: 1;
+}
+.page-transition-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s ease-out; /* Fade out quickly */
+}
+
+/* Specific styling for forms and cards for the new theme */
+/* These classes will be applied directly in React components using Tailwind's @apply or inline classes */
+.form-card {
+  background-color: rgba(30, 30, 30, 0.9); /* Slightly transparent dark background for cards/forms */
+  border: 1px solid rgba(255, 165, 0, 0.3); /* Subtle orange border */
+  color: #E0E0E0; /* Light text for readability on dark background */
+  position: relative; /* Ensure z-index works */
+  z-index: 1; /* Ensure form content is above the background pseudo-elements */
+}
+
+.form-input {
+  background-color: rgba(50, 50, 50, 0.8); /* Darker input background */
+  border: 1px solid rgba(255, 165, 0, 0.2); /* Subtle orange border */
+  color: #F0F0F0; /* Light text for input values */
+  caret-color: #FFA500; /* Orange cursor */
+}
+
+.form-input::placeholder {
+  color: #A0A0A0; /* Lighter placeholder text for contrast */
+}
+
+.form-input:focus {
+  border-color: #FFA500; /* Orange focus border */
+  box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.4); /* Orange glow on focus */
+}
+
+/* Styles for the category buttons and header elements */
+.category-btn-active {
+  background-color: #FFA500; /* Solid orange for active category button */
+  color: #1a1a1a; /* Dark text for orange background */
+  box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4); /* Orange shadow for active state */
+}
+
+.category-btn-inactive {
+  background-color: rgba(50, 50, 50, 0.7); /* Dark grey for inactive */
+  color: #F0F0F0; /* Light text for inactive buttons */
+}
+
+.category-btn-inactive:hover {
+  background-color: rgba(70, 70, 70, 0.8); /* Slightly lighter grey on hover */
+  box-shadow: 0 2px 10px rgba(255, 165, 0, 0.2); /* Subtle orange shadow on hover */
+}
+
+/* Custom scrollbar for better aesthetics on dark theme */
+/* Note: These are WebKit specific and won't work on all browsers like Firefox */
+::-webkit-scrollbar {
+  width: 10px; /* Width of the vertical scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 30, 30, 0.5); /* Dark track background */
+  border-radius: 10px; /* Rounded corners for the track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 165, 0, 0.7); /* Orange thumb with transparency */
+  border-radius: 10px; /* Rounded corners for the thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFA500; /* Solid orange on hover */
+}
+
