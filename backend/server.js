@@ -13,7 +13,7 @@ app.use(express.json());
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://awazz-now-krishnakant-kumars-projects.vercel.app',
+  process.env.FRONTEND_URL,
 ];
 
 app.use(cors({
