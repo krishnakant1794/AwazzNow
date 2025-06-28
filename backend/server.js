@@ -1,63 +1,64 @@
-
 import express from 'express';
 import dotenv from 'dotenv';
-import connectDB from './config/db.js'; 
+import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import summarizerRoutes from './routes/summarizer.routes.js';
 import cors from 'cors';
 
 dotenv.config(); 
-
 connectDB(); 
 
 const app = express();
-
-
 app.use(express.json());
 
-
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://awazz-now-krishnakant-kumars-projects.vercel.app',
+];
 
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'], 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS: Blocking request from unknown origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  credentials: true,
+  optionsSuccessStatus: 204
 }));
 
-
-console.log('Server: Registering routes...');
-
-
-
 app.use('/api/auth', authRoutes);
-console.log('Server: Auth routes registered at /api/auth');
-
-
-
-
-
 app.use('/api', summarizerRoutes);
-console.log('Server: Summarizer routes registered at /api');
-
-
 
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('AwaazNow Backend API is running!');
 });
 
-
 app.use((err, req, res, next) => {
-  console.error('Server Error:', err.stack); 
-  res.status(err.statusCode || 500).json({ 
-    message: err.message || 'Something broke!',
-    
-    
-  });
+  console.error('Server Error Caught by Middleware:', err.stack);
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Something broke on the server!';
+  
+  if (process.env.NODE_ENV === 'production') {
+    res.status(statusCode).json({ message: 'Internal Server Error' });
+  } else {
+    res.status(statusCode).json({
+      message: message,
+      error: err.name,
+      details: err.errors
+    });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });
+
 
 
