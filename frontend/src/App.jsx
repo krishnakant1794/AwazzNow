@@ -6,7 +6,7 @@ import Login from './components/Login.jsx';
 import Signup from './components/Signup.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
-const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
+
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,8 +78,8 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
     setError(null);     try {
       const queryToUse = query.trim() === '' ? 'latest news' : query; 
       const categoryParam = selectedCategory === 'general' ? '' : `&category=${selectedCategory}`;
-      const url = `https://newsapi.org/v2/top-headlines?q=${encodeURIComponent(queryToUse)}${categoryParam}&language=en&apiKey=${NEWS_API_KEY}`;
-      console.log("TRACE: fetchArticles - NewsAPI URL:", url);
+      const url = `${BACKEND_API_BASE_URL}/news?q=${encodeURIComponent(queryToUse)}${categoryParam}`;
+      console.log("TRACE: fetchArticles - Calling BACKEND URL:", url);
       const cacheKey = `articles-${selectedCategory}-${queryToUse}`;
       const cachedArticles = sessionStorage.getItem(cacheKey);
       if (cachedArticles) {
