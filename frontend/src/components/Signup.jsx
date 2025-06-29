@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react'; 
+
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
+
 const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -9,8 +11,10 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);   const [showConfirmPassword, setShowConfirmPassword] = useState(false); 
-    const togglePasswordVisibility = () => {
+  const [showPassword, setShowPassword] = useState(false);   
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); 
+
+  const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
   };
 
@@ -22,21 +26,27 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
     e.preventDefault();
     setLoading(true);
     setError(null); 
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       setLoading(false);
       return;
     }
+    if (password.length < 6) {
+        setError('Password must be at least 6 characters long.');
+        setLoading(false);
+        return;
+    }
 
     try {
-            const response = await axios.post(`${BACKEND_API_BASE_URL}/auth/register`, {
+      const response = await axios.post(`${BACKEND_API_BASE_URL}/auth/register`, {
         username,
         email,
         password,
       });
 
       console.log('Signup successful:', response.data);
-            onSignupSuccess(response.data.token, response.data._id, response.data.username);
+      onSignupSuccess(response.data.token, response.data._id, response.data.username);
 
     } catch (err) {
       console.error('Signup error:', err.response ? err.response.data : err.message);
@@ -47,7 +57,7 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4 animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-dark-background p-4 animate-fade-in-up">
       <div className="bg-dark-card-bg p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-700">
         <h2 className="text-3xl font-bold text-center text-orange-500 mb-8">Sign Up for AwaazNow</h2>
 
@@ -89,7 +99,7 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
             />
           </div>
 
-          <div className="relative"> {/* Password field with toggle */}
+          <div className="relative">
             <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="password">
               Password
             </label>
@@ -106,12 +116,13 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
               type="button"
               onClick={togglePasswordVisibility}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-orange-500 transition-colors duration-200 focus:outline-none"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
-          <div className="relative"> {/* Confirm Password field with toggle */}
+          <div className="relative">
             <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="confirmPassword">
               Confirm Password
             </label>
@@ -128,6 +139,7 @@ const Signup = ({ onSignupSuccess, onSwitchToLogin }) => {
               type="button"
               onClick={toggleConfirmPasswordVisibility}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-orange-500 transition-colors duration-200 focus:outline-none"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
             >
               {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>

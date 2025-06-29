@@ -1,35 +1,50 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { XCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'; // Import authentication components (ensure these files exist and are correct)
+import { XCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'; 
+
 import Login from './components/Login.jsx';
 import Signup from './components/Signup.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 
-const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function AppContent() {
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; 
+
+function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [userId, setUserId] = useState(localStorage.getItem('userId'));
   const [username, setUsername] = useState(localStorage.getItem('username'));
   const [isAuthReady, setIsAuthReady] = useState(false); 
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [articles, setArticles] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null); 
-  const [loading, setLoading] = useState(false); // Generic loading indicator
-  const [error, setError] = useState(null);   const [summary, setSummary] = useState('');
-  const [summarizing, setSummarizing] = useState(false); // Specific loading for summarization
+  const [loading, setLoading] = useState(false); 
+  const [error, setError] = useState(null); 
+
+  const [summary, setSummary] = useState('');
+  const [summarizing, setSummarizing] = useState(false); 
   const [keyTakeaways, setKeyTakeaways] = useState('');
-  const [generatingTakeaways, setGeneratingTakeaways] = useState(false);   const [searchQuery, setSearchQuery] = useState('l'); // User's input in search bar
-  const [category, setCategory] = useState('general');   const [savedArticles, setSavedArticles] = useState([]);
+  const [generatingTakeaways, setGeneratingTakeaways] = useState(false); 
+
+  const [searchQuery, setSearchQuery] = useState('l'); 
+  const [category, setCategory] = useState('general'); 
+
+  const [savedArticles, setSavedArticles] = useState([]);
+
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [articleToDeleteId, setArticleToDeleteId] = useState(null);
   const [modalMessage, setModalMessage] = useState('');
+
   const initialHomeFetchDone = useRef(false);
   const initialMySummariesFetchDone = useRef(false);
+
   const categories = ['general', 'business', 'technology', 'sports', 'health', 'science', 'entertainment'];
   const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
+
   const handleAuthSuccess = useCallback((newToken, newUserId, newUsername) => {
     console.log('TRACE: handleAuthSuccess - Login/Signup successful.');
     localStorage.setItem('token', newToken);
@@ -38,97 +53,110 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
     setToken(newToken);
     setUserId(newUserId);
     setUsername(newUsername);
-    setError(null); // Clear any previous general error
-    navigate('/'); // Crucial: Redirect to home page
-    setIsMobileMenuOpen(false); // Close mobile menu if open
+    setError(null); 
+    navigate('/'); 
+    setIsMobileMenuOpen(false); 
     console.log('TRACE: handleAuthSuccess - Redirected to /.');
   }, [navigate]);
+
   const handlePasswordResetSuccess = useCallback(() => {
     setError('Your password has been successfully reset. Please log in with your new password.');
-    navigate('/login'); // Crucial: Redirect to login page
+    navigate('/login'); 
     console.log('TRACE: handlePasswordResetSuccess - Redirected to /login.');
   }, [navigate]);
+
   const handleLogout = useCallback(() => {
     console.log('TRACE: handleLogout - Initiating logout process.');
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
-    setToken(null); // Explicitly set token state to null
+    setToken(null); 
     setUserId(null);
     setUsername(null);
+    
     setSelectedArticle(null);
     setSummary('');
     setKeyTakeaways('');
-    setArticles([]); // Clear articles from main view
-    setSavedArticles([]); // Clear saved articles
+    setArticles([]); 
+    setSavedArticles([]);
+    
     initialHomeFetchDone.current = false;
     initialMySummariesFetchDone.current = false;
 
-    setIsMobileMenuOpen(false); // Ensure mobile menu is closed
-    setError('You have been logged out.'); // Inform the user
-    navigate('/login'); // Crucial: Redirect to login page
+    setIsMobileMenuOpen(false); 
+    setError('You have been logged out.'); 
+    navigate('/login'); 
     console.log('TRACE: handleLogout - Logout complete, redirected to /login.');
   }, [navigate]);
+
   const handleSwitchToSignup = useCallback(() => navigate('/signup'), [navigate]);
   const handleSwitchToLogin = useCallback(() => navigate('/login'), [navigate]);
   const handleSwitchToForgotPassword = useCallback(() => navigate('/forgot-password'), [navigate]);
+
   const fetchArticles = useCallback(async (query, selectedCategory) => {
-    console.log(`TRACE: fetchArticles - Attempting to fetch articles for query: "${query}", category: "${selectedCategory}"`);
+    console.log(`TRACE: fetchArticles - Attempting to fetch articles via BACKEND for query: "${query}", category: "${selectedCategory}"`);
     setLoading(true);
-    setError(null);     try {
+    setError(null); 
+
+    try {
       const queryToUse = query.trim() === '' ? 'latest news' : query; 
-      const categoryParam = selectedCategory === 'general' ? '' : `&category=${selectedCategory}`;
+      const categoryParam = selectedCategory && selectedCategory !== 'general' ? `&category=${selectedCategory}` : '';
+      
       const url = `${BACKEND_API_BASE_URL}/news?q=${encodeURIComponent(queryToUse)}${categoryParam}`;
-      console.log("TRACE: fetchArticles - Calling BACKEND URL:", url);
-      const cacheKey = `articles-${selectedCategory}-${queryToUse}`;
+      console.log("TRACE: fetchArticles - Calling BACKEND NEWS PROXY URL:", url);
+
+      const cacheKey = `articles-backend-${selectedCategory}-${queryToUse}`;
       const cachedArticles = sessionStorage.getItem(cacheKey);
       if (cachedArticles) {
         setArticles(JSON.parse(cachedArticles));
         console.log(`TRACE: fetchArticles - Articles loaded from cache for "${queryToUse}" in "${selectedCategory}".`);
         setLoading(false);
-        return; // Exit if data found in cache
+        return; 
       }
 
-      const response = await axios.get(url);
-      if (!response.data || !response.data.articles) {
-        throw new Error('Invalid response from NewsAPI: Missing data or articles array.');
-      }
+      const response = await axios.get(url, {
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       
-      if (response.data.articles.length === 0) {
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) { 
         setArticles([]); 
         setError(`No articles found for "${queryToUse}" in category "${selectedCategory}". Try a different search or category.`);
-        console.log(`WARN: fetchArticles - No articles found for "${queryToUse}" in "${selectedCategory}".`);
+        console.log(`WARN: fetchArticles - No articles found from backend for "${queryToUse}" in "${selectedCategory}".`);
       } else {
-        setArticles(response.data.articles);
-        sessionStorage.setItem(cacheKey, JSON.stringify(response.data.articles)); // Cache successful response
+        setArticles(response.data); 
+        sessionStorage.setItem(cacheKey, JSON.stringify(response.data)); 
         setError(null); 
-        console.log(`TRACE: fetchArticles - Successfully fetched ${response.data.articles.length} articles.`);
+        console.log(`TRACE: fetchArticles - Successfully fetched ${response.data.length} articles from backend.`);
       }
     } catch (err) {
-      console.error('ERROR: fetchArticles Failed:', err.response ? err.response.data : err.message);
-      let errorMessage = 'Failed to fetch articles. Please check your network connection.';
+      console.error('ERROR: fetchArticles Failed (via Backend proxy):', err.response ? err.response.data : err.message);
+      let errorMessage = 'Failed to fetch articles. Please check your network connection or try again.';
       if (err.response) {
-        if (err.response.status === 401 || err.response.status === 426) {
-          errorMessage = 'NewsAPI key invalid or missing. Ensure VITE_NEWS_API_KEY is correct.';
+        if (err.response.status === 401 || err.response.status === 403) {
+          errorMessage = 'Authentication failed for news fetch. Please log in again.';
+          handleLogout(); 
         } else if (err.response.status === 429) {
-          errorMessage = 'NewsAPI rate limit exceeded. Please wait a moment and try again.';
+          errorMessage = 'News API rate limit exceeded for the backend. Please try again later.';
         } else {
-          errorMessage = `NewsAPI error: ${err.response.status} - ${err.response.data?.message || err.message}`;
+          errorMessage = `Failed to fetch news: ${err.response.status} - ${err.response.data?.message || err.message}`;
         }
       } else if (err.request) {
-        errorMessage = 'Network error or CORS issue. Check console for details.';
+        errorMessage = 'Network error or backend is unreachable. Check console for details.';
       }
       setError(errorMessage);
-      setArticles([]);
+      setArticles([]); 
     } finally {
       setLoading(false);
       console.log('TRACE: fetchArticles - Loading state set to false.');
     }
-  }, [NEWS_API_KEY]);   const fetchSavedArticles = useCallback(async () => {
+  }, [BACKEND_API_BASE_URL, token, handleLogout]); 
+
+
+  const fetchSavedArticles = useCallback(async () => {
     console.log('TRACE: fetchSavedArticles - Attempting to fetch saved articles.');
     if (!token || !isAuthReady) {
         console.log('TRACE: fetchSavedArticles - Skipping, token missing or auth not ready.');
-        setSavedArticles([]);
+        setSavedArticles([]); 
         return;
     }
     setLoading(true);
@@ -151,13 +179,15 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
       setLoading(false);
       console.log('TRACE: fetchSavedArticles - Loading state set to false.');
     }
-  }, [token, isAuthReady, handleLogout]); 
+  }, [token, isAuthReady, handleLogout, BACKEND_API_BASE_URL]); 
+
   const handleDeleteArticleClick = useCallback((articleId) => {
     console.log(`TRACE: handleDeleteArticleClick - Preparing to delete article ID: ${articleId}`);
     setArticleToDeleteId(articleId);
     setModalMessage("Are you sure you want to delete this saved article?");
     setShowConfirmDeleteModal(true);
   }, []);
+
   const confirmDeletion = useCallback(async () => {
     console.log(`TRACE: confirmDeletion - User confirmed deletion for article ID: ${articleToDeleteId}`);
     setShowConfirmDeleteModal(false); 
@@ -183,15 +213,18 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
       setArticleToDeleteId(null); 
       console.log('TRACE: confirmDeletion - Deletion process completed.');
     }
-  }, [articleToDeleteId, token, fetchSavedArticles, handleLogout]);
+  }, [articleToDeleteId, token, fetchSavedArticles, handleLogout, BACKEND_API_BASE_URL]);
+
   const cancelDeletion = useCallback(() => {
     console.log('TRACE: cancelDeletion - User cancelled deletion.');
-    setShowConfirmDeleteModal(false);
-    setArticleToDeleteId(null);
-  }, []);
+    setShowConfirmDeleteModal(false); 
+    setArticleToDeleteId(null); 
+  }, []); 
+
   const handleSearchSubmit = useCallback((e) => {
     e.preventDefault(); 
     console.log('TRACE: handleSearchSubmit - Form submitted. Query:', searchQuery, 'Category:', category);
+    
     initialHomeFetchDone.current = false;
     initialMySummariesFetchDone.current = false;
 
@@ -207,7 +240,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
         navigate('/login');
         console.log('TRACE: handleSearchSubmit - User not logged in, redirecting to /login.');
     }
-    setIsMobileMenuOpen(false); 
+    setIsMobileMenuOpen(false);
   }, [searchQuery, category, token, location.pathname, navigate, fetchArticles]);
 
   const handleCategoryClick = useCallback((newCategory) => {
@@ -215,9 +248,11 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
     setCategory(newCategory); 
     setSelectedArticle(null); 
     setSummary(''); setKeyTakeaways(''); 
-    setIsMobileMenuOpen(false);
+    setIsMobileMenuOpen(false); 
+
     initialHomeFetchDone.current = false;
     initialMySummariesFetchDone.current = false;
+
     if (location.pathname !== '/') {
       console.log('TRACE: handleCategoryClick - Navigating to / before fetching articles.');
       navigate('/');
@@ -229,18 +264,20 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
   const handleMySummariesClick = useCallback(() => {
     console.log('TRACE: handleMySummariesClick - "My Summaries" button clicked. Current Token:', token ? 'Exists' : 'Null');
     navigate('/my-summaries');
-    setIsMobileMenuOpen(false); 
-    setSelectedArticle(null); setSummary(''); setKeyTakeaways(''); 
+    setIsMobileMenuOpen(false);
+    setSelectedArticle(null); setSummary(''); setKeyTakeaways('');
     initialHomeFetchDone.current = false;
   }, [navigate, token]);
 
   const handleHomeClick = useCallback(() => {
     console.log('TRACE: handleHomeClick - "Home" button clicked. Current Token:', token ? 'Exists' : 'Null');
     navigate('/');
-    setIsMobileMenuOpen(false); 
-    setSelectedArticle(null); setSummary(''); setKeyTakeaways(''); 
-    initialMySummariesFetchDone.current = false; 
+    setIsMobileMenuOpen(false);
+    setSelectedArticle(null); setSummary(''); setKeyTakeaways('');
+    initialMySummariesFetchDone.current = false;
   }, [navigate, token]);
+
+
   const summarizeAndSaveArticle = async (article) => {
     console.log('TRACE: summarizeAndSaveArticle - Initiating summarization for article:', article.title);
     if (!token) { setError('Please log in to summarize and save articles.'); return; }
@@ -264,7 +301,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
     if (!token) { setError('Login is recommended for full features like generating takeaways.'); }
     setGeneratingTakeaways(true); setKeyTakeaways('');
     const articleContent = article.content || article.description;
-    if (!articleContent || articleContent.length < 50) { setKeyTakeaways('Content too short to extract key takeaways.'); setGeneratingTakeaways(false); return; }
+    if (!articleContent || articleContent.length < 50) { setKeyTakeaways('Content too short to extract key takeaways.'); setGeneratingTakeaways(false); return; } 
     try {
       const response = await axios.post(`${BACKEND_API_BASE_URL}/key-takeaways`, { content: articleContent }, { headers: { 'Authorization': `Bearer ${token}` } });
       setKeyTakeaways(response.data.takeaways);
@@ -274,6 +311,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
       if (err.response?.status === 401 || err.response?.status === 403) handleLogout();
     } finally { setGeneratingTakeaways(false); }
   };
+
   useEffect(() => {
     console.log('TRACE: useEffect 1 (Auth Init) - Component mounted. Checking localStorage for auth.');
     const storedToken = localStorage.getItem('token');
@@ -288,11 +326,13 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
     } else {
       console.log('TRACE: useEffect 1 (Auth Init) - No token found. User is logged out or first visit.');
     }
-    setIsAuthReady(true); // Signal that the initial authentication check is complete
+    setIsAuthReady(true); 
     console.log('TRACE: useEffect 1 (Auth Init) - isAuthReady set to true. Rendering can now proceed.');
-  }, []);   // Effect 2: Main Routing and Data Fetching Logic
+  }, []); 
+
   useEffect(() => {
     console.log(`TRACE: useEffect 2 (Main Logic) - Re-running. AuthReady: ${isAuthReady}, Token: ${token ? 'Exists' : 'Null'}, Path: ${location.pathname}`);
+
     if (!isAuthReady) {
       console.log('TRACE: useEffect 2 (Main Logic) - Waiting for isAuthReady to be true. Skipping logic.');
       return;
@@ -301,6 +341,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
     const currentPathIsAuth = authPaths.some(path => location.pathname.startsWith(path));
     const currentPathIsHome = location.pathname === '/';
     const currentPathIsMySummaries = location.pathname === '/my-summaries';
+
     if (!token) {
       console.log('TRACE: useEffect 2 (Main Logic) - User is NOT authenticated.');
       if (!currentPathIsAuth) {
@@ -312,12 +353,15 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
       }
       return; 
     }
+
     console.log('TRACE: useEffect 2 (Main Logic) - User IS authenticated.');
+    
     if (currentPathIsAuth && !location.pathname.startsWith('/reset-password/')) {
         console.log('TRACE: useEffect 2 (Main Logic) - Authenticated on auth path. Redirecting to /.');
         navigate('/', { replace: true }); 
         return; 
     }
+
     if (currentPathIsHome) {
       if (!initialHomeFetchDone.current) {
         console.log('TRACE: useEffect 2 (Main Logic) - On Home path. Initiating initial fetchArticles.');
@@ -338,13 +382,15 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
       }
       initialHomeFetchDone.current = false; 
     } else {
-      console.log('TRACE: useEffect 2 (Main Logic) - Authenticated on unhandled path. Resetting fetch flags.');
-      initialHomeFetchDone.current = false;
-      initialMySummariesFetchDone.current = false;
+        console.log('TRACE: useEffect 2 (Main Logic) - Authenticated on unhandled path. Ensuring fetch flags are reset.');
+        initialHomeFetchDone.current = false;
+        initialMySummariesFetchDone.current = false;
     }
 
-  }, [token, location.pathname, isAuthReady, navigate, fetchArticles, fetchSavedArticles, searchQuery, category]);   // Derived state for cleaner JSX (to decide if category bar should show)
+  }, [token, location.pathname, isAuthReady, navigate, fetchArticles, fetchSavedArticles, searchQuery, category]); 
+
   const isMySummariesView = location.pathname === '/my-summaries';
+
   if (!isAuthReady) {
     console.log('RENDER: Displaying Loading Screen. (isAuthReady: false)');
     return (
@@ -354,6 +400,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
       </div>
     );
   }
+
   if (!token) {
     console.log('RENDER: Displaying Authentication Routes. (isAuthReady: true, token: null)');
     return (
@@ -361,13 +408,12 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
         <Route path="/login" element={<Login onLoginSuccess={handleAuthSuccess} onSwitchToSignup={handleSwitchToSignup} onSwitchToForgotPassword={handleSwitchToForgotPassword} />} />
         <Route path="/signup" element={<Signup onSignupSuccess={handleAuthSuccess} onSwitchToLogin={handleSwitchToLogin} />} />
         <Route path="/forgot-password" element={<ForgotPassword onSwitchToLogin={handleSwitchToLogin} />} />
-        {/* Reset password link MUST be accessible even when logged out */}
         <Route path="/reset-password/:token" element={<ResetPassword onPasswordResetSuccess={handlePasswordResetSuccess} />} />
-        {/* Catch-all route: if user tries to go to any other path while logged out, redirect to login component */}
         <Route path="*" element={<Login onLoginSuccess={handleAuthSuccess} onSwitchToSignup={handleSwitchToSignup} onSwitchToForgotPassword={handleSwitchToForgotPassword} />} />
       </Routes>
     );
   }
+
   console.log('RENDER: Displaying Main Application UI. (isAuthReady: true, token: exists)');
   return (
     <div className="min-h-screen font-sans text-light-text relative z-10">
@@ -528,8 +574,8 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
                       onClick={() => {
                         console.log('TRACE: News card clicked:', article.title);
                         setSelectedArticle(article);
-                        setSummary(''); // Clear previous summary for new article
-                        setKeyTakeaways(''); // Clear previous takeaways
+                        setSummary(''); 
+                        setKeyTakeaways(''); 
                       }}
                     >
                       {article.urlToImage && (
@@ -539,7 +585,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
                           className="w-full h-48 object-cover object-center rounded-t-lg"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = `https://placehold.co/600x400/333/E0E7FF?text=No+Image`; // Placeholder on error
+                            e.target.src = `https://placehold.co/600x400/333/E0E7FF?text=No+Image`; 
                           }}
                         />
                       )}
@@ -687,7 +733,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {savedArticles.map((article) => ( 
                 <div
-                  key={article._id} // Using unique MongoDB _id as key
+                  key={article._id} 
                   className="bg-dark-card-bg rounded-lg shadow-lg overflow-hidden border border-gray-700 transform hover:scale-[1.02] transition-transform duration-300 ease-in-out animate-fade-in"
                 >
                   {article.imageUrl && (
@@ -724,7 +770,7 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL; function
                         Read Original Article
                       </a>
                       <button
-                        onClick={() => handleDeleteArticleClick(article._id)} // Calls the confirmation modal handler
+                        onClick={() => handleDeleteArticleClick(article._id)} 
                         className="mt-4 inline-block bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300 text-sm font-medium btn-orange-glow"
                       >
                         Delete
@@ -850,9 +896,9 @@ function HomeRedirect() {
   const navigate = useNavigate();
   useEffect(() => {
     console.log('TRACE: HomeRedirect - Triggered. Navigating to /.');
-    navigate('/', { replace: true }); // Use replace to avoid infinite loops in history
+    navigate('/', { replace: true }); 
   }, [navigate]);
-  return null; // This component doesn't render anything visually
+  return null; 
 }
 function App() {
   console.log('TRACE: App component mounted. Initializing Router.');
