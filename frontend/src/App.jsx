@@ -862,7 +862,7 @@ function AppContent() {
             </a>
           </div>
 
-          <p className="text-sm mt-4">Designed by <strong>Krishnakant Kumar</strong> 🎓<strong>B.Tech CSE</strong>  🏫 <strong>Central University of Jharkhand</strong> 🕒 on 15/06/25 Powered by NewsAPI, Google Gemini AI, and MongoDB.</p>
+          <p className="text-sm mt-4">Designed by <strong>Krishnakant Kumar</strong> 🎓<strong>B.Tech CSE</strong>  🏫 <strong>Central University of Jharkhand</strong> 🕒 on 29/06/25 Powered by NewsAPI, Google Gemini AI, and MongoDB.</p>
         </div>
       </footer>
     </div>
