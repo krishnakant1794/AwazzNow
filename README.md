@@ -1,4 +1,5 @@
 # AwaazNow: Your Personalized AI-Powered News Digest
+## Backend link :- https://awazznow.onrender.com
 
 ![AwaazNow Logo](https://placehold.co/150x150/FFA500/000000?text=AwaazNow+Logo)
 
