@@ -39,7 +39,6 @@ app.get('/', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error('Server Error Caught by Middleware:', err.stack);
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Something broke on the server!';
   
@@ -56,9 +55,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });
-
 
 
